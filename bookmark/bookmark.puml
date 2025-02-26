@@ -1,0 +1,36 @@
+@startuml
+
+actor User
+participant "Bookmark Page" as UI
+participant "Bookmark API" as API
+
+== Load Bookmarks ==
+User -> UI: Open Bookmark Page
+UI -> API: GET /bookmarks
+API -> API: Retrieve bookmark data
+API -> UI: Return bookmarks list
+UI -> User: Display saved bookmarks
+
+== Change Bookmark Category ==
+User -> UI: Select a category (Routes, Bus Lines, Stations)
+UI -> User: Display relevant bookmarks
+
+== Edit Bookmark ==
+User -> UI: Tap Edit button on a bookmark
+UI -> UI: Open edit dialog
+User -> UI: Modify bookmark name
+UI -> API: POST /update-bookmark (updated name)
+API -> API: Update bookmark entry
+API -> UI: Return success response
+UI -> User: Update bookmark display
+
+== Delete Bookmark ==
+User -> UI: Tap Delete button on a bookmark
+UI -> UI: Show confirmation dialog
+User -> UI: Confirm deletion
+UI -> API: DELETE /remove-bookmark
+API -> API: Remove bookmark entry
+API -> UI: Return success response
+UI -> User: Remove bookmark from list
+
+@enduml
