@@ -1,0 +1,23 @@
+@startuml
+
+actor User
+participant "Login Page" as UI
+participant "Login API" as API
+
+== Normal Scenario ==
+User -> UI: Enter email & password
+User -> UI: Tap Login button
+UI -> UI: Validate input
+alt Valid input
+    UI -> API: POST /login (email, password)
+    API -> API: Authenticate user
+    alt Authentication successful
+        API -> UI: 200 OK (session token)
+        UI -> UI: Navigate to HomePage
+    else Authentication failed
+        API -> UI: 401 Unauthorized
+        UI -> User: Show error message
+    end
+end
+
+@enduml
