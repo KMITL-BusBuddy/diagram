@@ -1,10 +1,11 @@
-@startuml
+@startuml edit_profile
+
+hide footbox
 
 actor User
 participant "Edit Profile Page" as UI
-participant "User API" as API
+participant "Django\nURL Dispatcher" as API
 
-== Edit Profile Scenario ==
 User -> UI: Enter new username & email
 User -> UI: Tap Save button
 UI -> UI: Validate input
