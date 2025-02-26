@@ -1,77 +1,9 @@
-@startuml database
+@startuml db-user
 
 hide circle
 hide empty members
 
 skinparam linetype ortho
-
-entity transit_stops {
-    * **stop_id: INT <<PK>>**
-    name_th: VARCHAR(255)
-    name_en: VARCHAR(255)
-    latitude: DECIMAL(18, 15)
-    longitude: DECIMAL(18, 15)
-    --
-    * group_id: INT <<FK>>
-}
-
-entity transit_stop_details {
-    has_atms: BOOLEAN
-    has_car_parks: BOOLEAN
-    has_toilets: BOOLEAN
-    has_wheelchair_access: BOOLEAN
-    --
-    * stop_id: INT <<FK>>
-}
-
-entity transit_stop_groups {
-    * **group_id: INT <<PK>>**
-    name_th: VARCHAR(100)
-    name_en: VARCHAR(100)
-}
-
-transit_stops }|..|| transit_stop_groups
-transit_stops }|..o| transit_stop_details
-
-entity transit_lines {
-    * **line_id: INT <<PK>>**
-    name_th: TEXT
-    name_en: TEXT
-    name_short: VARCHAR(100)
-    description_th: TEXT
-    description_en: TEXT
-    --
-    * transport_agency_id: INT <<FK>>
-    * transport_type_id: INT <<FK>>
-}
-
-entity transport_agencies {
-    * **agency_id: INT <<PK>>**
-    name_th: VARCHAR(100)
-    name_en: VARCHAR(100)
-}
-
-entity transport_types {
-    * **type_id: INT <<PK>>**
-    type_th: VARCHAR(20)
-    type_en: VARCHAR(20)
-}
-
-transit_lines }|..o| transport_agencies
-transit_lines }|..o| transport_types
-
-
-
-entity bus_realtime {
-    * **bus_id: INT <<PK>>**
-    pdat: VARCHAR(255)
-    paht_no: VARCHAR(255)
-    lat: DOUBLE
-    lon: DOUBLE
-    ts: DATETIME
-    speed: DOUBLE
-    update_flage: INT
-}
 
 entity post {
     * **post_id: INT <<PK>>**
@@ -140,17 +72,21 @@ entity user_place {
 user }o..o{ user_place
 
 entity favorite_routes {
+    --
     * user_id: INT <<FK>>
     * line_id: INT <<FK>>
 }
 
 entity favorite_stops {
+    --
     * user_id: INT <<FK>>
     * stop_id: INT <<FK>>
 }
 
 user }o..o{ favorite_routes
 user }o..o{ favorite_stops
+favorite_routes }|..|| transit_lines
+favorite_stops }|..|| transit_stops
 
 entity feedbacks {
     * **feedback_id: INT <<PK>>**
