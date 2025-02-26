@@ -1,0 +1,185 @@
+@startuml database
+
+hide circle
+hide empty members
+
+skinparam linetype ortho
+
+entity transit_stops {
+    * **stop_id: INT <<PK>>**
+    name_th: VARCHAR(255)
+    name_en: VARCHAR(255)
+    latitude: DECIMAL(18, 15)
+    longitude: DECIMAL(18, 15)
+    --
+    * group_id: INT <<FK>>
+}
+
+entity transit_stop_details {
+    has_atms: BOOLEAN
+    has_car_parks: BOOLEAN
+    has_toilets: BOOLEAN
+    has_wheelchair_access: BOOLEAN
+    --
+    * stop_id: INT <<FK>>
+}
+
+entity transit_stop_groups {
+    * **group_id: INT <<PK>>**
+    name_th: VARCHAR(100)
+    name_en: VARCHAR(100)
+}
+
+transit_stops }|..|| transit_stop_groups
+transit_stops }|..o| transit_stop_details
+
+entity transit_lines {
+    * **line_id: INT <<PK>>**
+    name_th: TEXT
+    name_en: TEXT
+    name_short: VARCHAR(100)
+    description_th: TEXT
+    description_en: TEXT
+    --
+    * transport_agency_id: INT <<FK>>
+    * transport_type_id: INT <<FK>>
+}
+
+entity transport_agencies {
+    * **agency_id: INT <<PK>>**
+    name_th: VARCHAR(100)
+    name_en: VARCHAR(100)
+}
+
+entity transport_types {
+    * **type_id: INT <<PK>>**
+    type_th: VARCHAR(20)
+    type_en: VARCHAR(20)
+}
+
+transit_lines }|..o| transport_agencies
+transit_lines }|..o| transport_types
+
+
+
+entity bus_realtime {
+    * **bus_id: INT <<PK>>**
+    pdat: VARCHAR(255)
+    paht_no: VARCHAR(255)
+    lat: DOUBLE
+    lon: DOUBLE
+    ts: DATETIME
+    speed: DOUBLE
+    update_flage: INT
+}
+
+entity post {
+    * **post_id: INT <<PK>>**
+    text_content: VARCHAR(500)
+    image: VARCHAR(255)
+    timestamp: DATETIME
+    --
+    * user_id: INT <<FK>>
+}
+
+entity user {
+    * **user_id: INT <<PK>>**
+    user_name: VARCHAR(100)
+    email: VARCHAR(100)
+    profile_image: VARCHAR(255)
+}
+
+entity comment {
+    * **comment_id: INT <<PK>>**
+    text_content: VARCHAR(500)
+    timestamp: DATETIME
+    --
+    * user_id: INT <<FK>>
+    * post_id: INT <<FK>>
+}
+
+entity like {
+    * **like_id: INT <<PK>>**
+    timestamp: DATETIME
+    --
+    * user_id: INT <<FK>>
+    * post_id: INT <<FK>>   
+}
+
+user ||..o{ post
+user ||..o{ comment
+user ||..o{ like
+post ||..o{ comment
+post ||..o{ like
+
+entity user_event {
+    * **event_id: INT <<PK>>**
+    event_name: VARCHAR(100)
+    description: VARCHAR(500)
+    start_date: DATETIME
+    end_date: DATETIME
+    latitude: DECIMAL(18, 15)
+    longitude: DECIMAL(18, 15)
+    --
+    * post_id: INT <<FK>>
+}
+
+user_event ||--|| post
+
+
+entity user_place {
+    * **place_id: INT <<PK>>**
+    place_name: VARCHAR(100)
+    latitude: DECIMAL(18, 15)
+    longitude: DECIMAL(18, 15)
+    --
+    * user_id: INT <<FK>>
+    * place_type_id: INT <<FK>>
+}
+
+user }o..o{ user_place
+
+entity favorite_routes {
+    * user_id: INT <<FK>>
+    * line_id: INT <<FK>>
+}
+
+entity favorite_stops {
+    * user_id: INT <<FK>>
+    * stop_id: INT <<FK>>
+}
+
+user }o..o{ favorite_routes
+user }o..o{ favorite_stops
+
+entity feedbacks {
+    * **feedback_id: INT <<PK>>**
+    feedback_type: VARCHAR(100)
+    text_content: VARCHAR(500)
+    image: VARCHAR(100)
+    timestamp: DATETIME
+    --
+    * user_id: INT <<FK>>
+}
+
+user ||..o{ feedbacks
+
+' entity user_configuration {
+'     config_key: VARCHAR(100)
+'     config_value: VARCHAR(255)
+'     --
+'     * user_id: INT <<FK>>
+' }
+
+
+entity notification {
+    * **device_id: INT <<PK>>**
+    --
+    * user_id: INT <<FK>>
+    * fcm_device_id: INT <<FK>>
+}
+
+user }o..o{ notification
+
+
+@enduml
