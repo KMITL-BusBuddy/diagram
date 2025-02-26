@@ -1,0 +1,25 @@
+@startuml
+
+actor User
+participant "Edit Profile Page" as UI
+participant "User API" as API
+
+== Edit Profile Scenario ==
+User -> UI: Enter new username & email
+User -> UI: Tap Save button
+UI -> UI: Validate input
+alt Valid input
+    UI -> API: POST /edit-profile (username, email)
+    API -> API: Update user profile
+    alt Update successful
+        API -> UI: 200 OK (success message)
+        UI -> User: Show success notification
+    else Update failed
+        API -> UI: 400 Bad Request / Error message
+        UI -> User: Show error notification
+    end
+else Invalid input
+    UI -> User: Show validation error message
+end
+
+@enduml

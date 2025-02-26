@@ -1,0 +1,23 @@
+@startuml
+
+actor User
+participant "Register Page" as UI
+participant "Register API" as API
+
+== Normal Scenario ==
+User -> UI: Enter email, password & confirm password
+User -> UI: Tap Register button
+UI -> UI: Validate input
+alt Valid input
+    UI -> API: POST /register (email, password)
+    API -> API: Create new user
+    alt Registration successful
+        API -> UI: 201 Created (user details)
+        UI -> User: Show success message
+    else Registration failed
+        API -> UI: 400 Bad Request / 409 Conflict
+        UI -> User: Show error message
+    end
+end
+
+@enduml
