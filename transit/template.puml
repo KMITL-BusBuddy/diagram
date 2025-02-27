@@ -1,0 +1,45 @@
+@startuml search_transit_lines
+
+hide footbox
+
+actor User
+participant "<<UI PAGE>>Page" as UI
+participant "Django\nURL Dispatcher" as API
+participant "<<APP VIEW>>\nView" as view_
+participant "<<APP SER>>\nSerilizer" as serializer_
+database "<<TABLE>>" as table_
+
+activate User
+activate UI
+User -> UI: Enter search query
+User -> UI: Tap Search button
+
+UI -> API: GET /transit_lines/search
+activate API
+
+API -> view_: get(query),\nget_all_routes()
+activate view_
+
+view_ -> serializer_: get(request)
+activate serializer_
+
+serializer_ -> table_: serializer(query_set)
+activate table_
+
+table_ --> serializer_: transit_lines_data
+deactivate table_
+
+serializer_ --> view_: transit_lines_data
+deactivate serializer_
+
+view_ --> API: response()
+deactivate view_
+
+API --> UI: response()
+deactivate API
+
+UI -> User: Display search results
+deactivate UI
+
+
+@enduml

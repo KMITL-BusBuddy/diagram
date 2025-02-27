@@ -1,0 +1,32 @@
+@startuml
+
+actor User
+participant "Notification Page" as UI
+participant "Notification API" as API
+participant "Notification Route Page" as RouteUI
+participant "Timeline Component" as Timeline
+
+== Load Notifications ==
+User -> UI: Open Notification Page
+UI -> API: GET /notifications
+API -> API: Retrieve notification data
+API -> UI: Return notifications list
+UI -> User: Display notifications
+
+== View Route Details ==
+User -> UI: Tap a notification
+UI -> RouteUI: Navigate to Notification Route Page
+RouteUI -> API: GET /route-details
+API -> API: Retrieve route details
+API -> RouteUI: Return route details
+RouteUI -> User: Display route timeline
+
+== Toggle Notification Alert ==
+User -> Timeline: Tap Bell Icon for a Stop
+Timeline -> Timeline: Toggle Notification State
+Timeline -> API: POST /update-alert (stop name)
+API -> API: Update selected stops
+API -> Timeline: Confirm stop selection
+Timeline -> User: Update Bell Icon Status
+
+@enduml
