@@ -1,36 +1,107 @@
-@startuml
+@startuml route_detail
+
+hide footbox
 
 actor User
-participant "SearchScreen" as SearchScreen
-participant "RouteDetailScreen" as RouteDetailScreen
-participant "Stop API" as StopAPI
-participant "RouteMapScreen" as RouteMapScreen
-participant "Database" as Database
+participant "Search\nScreen" as SearchScreen
+participant "RouteDetail\nScreen" as RouteDetailScreen
+participant "RouteMap\nScreen" as RouteMapScreen
+participant "Django\nURL Dispatcher" as API
+participant "TransitLines\nView" as view_lines
+participant "Favorite\nView" as view_favorite
+participant "Alert\nView" as view_alert
+participant "TransitLines\nService" as service_lines
+participant "TransitLines\nSerilizer" as serializer_lines
+participant "Favorite\nSerilizer" as serializer_favorite
+participant "Alert\nSerilizer" as serializer_alert
+database "database" as db
+
 
 == User selects a route directly ==
-User -> SearchScreen : clickSelectRoute(route)
-SearchScreen -> RouteDetailScreen : navigateToRouteDetailScreen(route)
-RouteDetailScreen -> StopAPI : getRouteDetails(route)
-StopAPI -> RouteDetailScreen : returnRouteDetails(routeDetails)
+User -> SearchScreen : click selected route
+activate User
+SearchScreen -> RouteDetailScreen : displayRouteDetails(route)
+activate RouteDetailScreen
+RouteDetailScreen -> API : GET /transit-lines/shapes \nwith route_id
+activate API
+
+' API Call
+API -> view_lines: get(locations)
+activate view_lines
+view_lines -> service_lines: get(line_id)
+activate service_lines
+service_lines -> serializer_lines: get(request)
+activate serializer_lines
+serializer_lines -> db: serializer(query_set)
+activate db
+db --> serializer_lines: shapes_data
+deactivate db
+serializer_lines --> service_lines: shapes_data
+deactivate serializer_lines
+service_lines --> view_lines: shapes_data
+deactivate service_lines
+view_lines --> API: response()
+deactivate view_lines 
+
+' API Response
+API --> RouteDetailScreen: routeDetails
+deactivate API
 RouteDetailScreen -> RouteMapScreen : displayRouteOnMap(routeDetails)
-RouteMapScreen -> User : showRouteOnMap(routeDetails)
+activate RouteMapScreen
+RouteDetailScreen --> User : display route details
+RouteMapScreen --> User : display route on map
+deactivate RouteMapScreen
 
 == User interacts with Route Detail Screen ==
-User -> RouteDetailScreen : clickBookmarkRoute(route)
-RouteDetailScreen -> Database : saveRouteBookmark(route)
-Database -> RouteDetailScreen : confirmRouteBookmarkSaved()
+opt User wants to bookmark route or bus stop
+    User -> RouteDetailScreen : click bookmark route
+    User -> RouteDetailScreen : click bookmark bus stop
+    RouteDetailScreen -> API : POST /favorite/stops \nwith bus_stop_id
+    activate API
+    RouteDetailScreen -> API : POST /favorite/routes \nwith route_id
+    API -> view_favorite: post(request)
+    activate view_favorite
+    view_favorite -> serializer_favorite: post(request)
+    activate serializer_favorite
+    serializer_favorite -> db: serializer(query_set)
+    activate db
+    db --> serializer_favorite: status
+    deactivate db
+    serializer_favorite --> view_favorite: status
+    deactivate serializer_favorite
+    view_favorite --> API: response()
+    deactivate view_favorite
+    API --> RouteDetailScreen: status
+    deactivate API
+end
 
-User -> RouteDetailScreen : clickBookmarkBusStop(busStop)
-RouteDetailScreen -> Database : saveBusStopBookmark(busStop)
-Database -> RouteDetailScreen : confirmBusStopBookmarkSaved()
+opt User wants to set arrival alert
+    User -> RouteDetailScreen : click set arrival alert
+    RouteDetailScreen -> API : POST /alert/arrival \nwith bus_stop_id
+    activate API
+    RouteDetailScreen -> API : POST /alert/arrival \nwith route_id
+    API -> view_alert: post(request)
+    activate view_alert
+    view_alert -> serializer_alert: post(request)
+    activate serializer_alert
+    serializer_alert -> db: serializer(query_set)
+    activate db
+    db --> serializer_alert: status
+    deactivate db
+    serializer_alert --> view_alert: status
+    deactivate serializer_alert
+    view_alert --> API: response()
+    deactivate view_alert
+    API --> RouteDetailScreen: status
+    deactivate API
+    RouteDetailScreen --> User : display status
+    deactivate RouteDetailScreen
+    deactivate User
+end
 
-User -> RouteDetailScreen : clickFindNearbyBusRoute()
-RouteDetailScreen -> StopAPI : findNearbyBusRoute(userLocation)
-StopAPI -> RouteDetailScreen : returnNearbyBusRoute(busRouteDetails)
-RouteDetailScreen -> User : displayNearbyBusRoute(busRouteDetails)
-
-User -> RouteDetailScreen : clickSetArrivalAlert(busStop)
-RouteDetailScreen -> Database : saveArrivalAlert(busStop, route)
-Database -> RouteDetailScreen : confirmArrivalAlertSaved()
+' User -> RouteDetailScreen : clickFindNearbyBusRoute()
+' RouteDetailScreen -> API : findNearbyBusRoute(userLocation)
+' API -> RouteDetailScreen : returnNearbyBusRoute(busRouteDetails)
+' RouteDetailScreen -> User : displayNearbyBusRoute(busRouteDetails)
 
 @enduml
