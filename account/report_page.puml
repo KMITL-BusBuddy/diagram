@@ -1,0 +1,29 @@
+@startuml
+
+actor User
+participant "Report Page" as UI
+participant "API Service" as API
+
+== Open Report Page ==
+User -> UI: Open Report Page
+UI -> User: Display Form
+
+== Select Category and Enter Details ==
+User -> UI: Select Category
+User -> UI: Enter Topic
+User -> UI: Enter Details
+
+== Upload Image ==
+User -> UI: Tap Upload Button
+UI -> User: Show Image Picker Options
+User -> UI: Select Image (Gallery/Camera)
+UI -> UI: Convert Image to Base64
+
+== Submit Report ==
+User -> UI: Tap Submit Button
+UI -> API: POST /submit-report (Category, Topic, Details, Image)
+API -> API: Process and Store Report
+API -> UI: Return Success/Failure Response
+UI -> User: Show Success/Error Message
+
+@enduml
