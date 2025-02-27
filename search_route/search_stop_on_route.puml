@@ -1,0 +1,12 @@
+@startuml
+
+actor User
+participant RouteScreen
+participant "Stop API" as StopAPI
+
+User -> RouteScreen : startTypingSearchQuery(query)
+RouteScreen -> StopAPI : searchBusStops(query)
+StopAPI -> RouteScreen : returnSearchResults(busStops)
+RouteScreen -> User : displaySearchResults(busStops)
+
+@enduml

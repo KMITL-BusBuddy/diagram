@@ -1,0 +1,19 @@
+@startuml
+
+actor User
+participant HomeScreen
+participant "Stop API" as StopAPI
+participant "Feed API" as FeedAPI
+
+User -> HomeScreen : openHomeScreen()
+HomeScreen -> HomeScreen : getUserLocation() 
+HomeScreen -> StopAPI : getAllBusStops()
+StopAPI -> HomeScreen : returnAllBusStops(busStops)
+HomeScreen -> HomeScreen : calculateNearestBusStop(userLocation, busStops)
+HomeScreen -> StopAPI : getBusArrivalInfo(nearestBusStop)
+StopAPI -> HomeScreen : returnBusArrivalInfo(busArrivals)
+HomeScreen -> FeedAPI : getBusStopNews(nearestBusStop)
+FeedAPI -> HomeScreen : returnBusStopNews(news)
+HomeScreen -> User : displayBusStopNewsAndArrivals(news, busArrivals)
+
+@enduml

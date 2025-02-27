@@ -1,0 +1,36 @@
+@startuml
+
+actor User
+participant "SearchScreen" as SearchScreen
+participant "RouteDetailScreen" as RouteDetailScreen
+participant "Stop API" as StopAPI
+participant "RouteMapScreen" as RouteMapScreen
+participant "Database" as Database
+
+== User selects a route directly ==
+User -> SearchScreen : clickSelectRoute(route)
+SearchScreen -> RouteDetailScreen : navigateToRouteDetailScreen(route)
+RouteDetailScreen -> StopAPI : getRouteDetails(route)
+StopAPI -> RouteDetailScreen : returnRouteDetails(routeDetails)
+RouteDetailScreen -> RouteMapScreen : displayRouteOnMap(routeDetails)
+RouteMapScreen -> User : showRouteOnMap(routeDetails)
+
+== User interacts with Route Detail Screen ==
+User -> RouteDetailScreen : clickBookmarkRoute(route)
+RouteDetailScreen -> Database : saveRouteBookmark(route)
+Database -> RouteDetailScreen : confirmRouteBookmarkSaved()
+
+User -> RouteDetailScreen : clickBookmarkBusStop(busStop)
+RouteDetailScreen -> Database : saveBusStopBookmark(busStop)
+Database -> RouteDetailScreen : confirmBusStopBookmarkSaved()
+
+User -> RouteDetailScreen : clickFindNearbyBusRoute()
+RouteDetailScreen -> StopAPI : findNearbyBusRoute(userLocation)
+StopAPI -> RouteDetailScreen : returnNearbyBusRoute(busRouteDetails)
+RouteDetailScreen -> User : displayNearbyBusRoute(busRouteDetails)
+
+User -> RouteDetailScreen : clickSetArrivalAlert(busStop)
+RouteDetailScreen -> Database : saveArrivalAlert(busStop, route)
+Database -> RouteDetailScreen : confirmArrivalAlertSaved()
+
+@enduml
