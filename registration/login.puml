@@ -2,7 +2,7 @@
 
 actor User
 participant "Login Page" as UI
-participant "Login API" as API
+participant "Django\nURL Dispatcher" as API
 
 == Normal Scenario ==
 User -> UI: Enter email & password

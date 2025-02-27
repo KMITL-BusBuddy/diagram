@@ -1,0 +1,47 @@
+@startuml
+
+actor User
+participant SearchScreen
+participant "Stop API" as StopAPI
+participant "SelectMapScreen" as SelectMapScreen
+participant HomeScreen
+participant "MapScreen" as HomeMapScreen
+participant "Feed API" as FeedAPI
+
+== Method 1: Search by Typing ==
+User -> SearchScreen : startTypingSearchQuery(query)
+SearchScreen -> StopAPI : searchBusStops(query)
+StopAPI -> SearchScreen : returnSearchResults(busStops)
+SearchScreen -> User : displaySearchResults(busStops)
+
+User -> SearchScreen : clickSearchResult(busStop)
+SearchScreen -> HomeScreen : navigateToHomeScreenWithMap(busStop)
+HomeScreen -> StopAPI : getArrivalInfo(busStop)
+StopAPI -> HomeScreen : returnArrivalInfo(busArrivalDetails)
+HomeScreen -> HomeMapScreen : displayMapWithArrivalInfo(busArrivalDetails)
+HomeMapScreen -> User : showMapWithBusArrivalDetails()
+
+HomeScreen -> FeedAPI : getBusStopNews(nearestBusStop)
+FeedAPI -> HomeScreen : returnBusStopNews(news)
+HomeScreen -> User : showBusStopNews(news)
+
+== Method 2: Select Bus Stop on Map ==
+User -> SearchScreen : clickSelectBusStopButton()
+SearchScreen -> SelectMapScreen : navigateToSelectMapScreen()
+User -> SelectMapScreen : selectBusStopOnMap(busStopLocation)
+SelectMapScreen -> SearchScreen : returnToSearchScreenWithSelectedBusStop(busStopLocation)
+SearchScreen -> SearchScreen : updateSearchFieldsWithBusStop(busStopLocation)
+SearchScreen -> User : displayUpdatedSearchFields(busStop)
+
+User -> SearchScreen : clickSearchResult(busStop)
+SearchScreen -> HomeScreen : navigateToHomeScreenWithMap(busStop)
+HomeScreen -> StopAPI : getArrivalInfo(busStop)
+StopAPI -> HomeScreen : returnArrivalInfo(busArrivalDetails)
+HomeScreen -> HomeMapScreen : displayMapWithArrivalInfo(busArrivalDetails)
+HomeMapScreen -> User : showMapWithBusArrivalDetails()
+
+HomeScreen -> FeedAPI : getBusStopNews(nearestBusStop)
+FeedAPI -> HomeScreen : returnBusStopNews(news)
+HomeScreen -> User : showBusStopNews(news)
+
+@enduml

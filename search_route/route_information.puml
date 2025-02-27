@@ -1,0 +1,34 @@
+@startuml
+
+actor User
+participant RouteScreen
+participant RouteDetails
+participant "Stop API" as StopAPI
+
+User -> RouteScreen : selectRoute(routeDetails)
+RouteScreen -> RouteDetails : navigateToRouteDetails(routeDetails)
+RouteDetails -> StopAPI : getRouteDetails(routeDetails)
+StopAPI -> StopAPI : fetchRouteInfo(routeDetails)
+StopAPI -> RouteDetails : returnRouteDetails(routeInfo)
+RouteDetails -> RouteDetails : displayRouteInfo(routeInfo)
+RouteDetails -> RouteDetails : drawRouteOnMap(routeInfo)
+User -> RouteDetails : clickTrackMyBusButton()
+RouteDetails -> StopAPI : findNearestBusRoute(userLocation)
+StopAPI -> StopAPI : findClosestBusRoute(userLocation)
+StopAPI -> RouteDetails : returnNearestBusRoute(busRoute)
+RouteDetails -> User : displayNearestBusRoute(busRoute)
+
+User -> RouteDetails : clickBookmarkButton()
+RouteDetails -> RouteDetails : promptUserForRouteName()
+User -> RouteDetails : enterRouteName(routeName)
+RouteDetails -> StopAPI : saveRouteToDatabase(routeDetails, routeName)
+StopAPI -> StopAPI : saveRouteToDB(routeDetails, routeName)
+StopAPI -> RouteDetails : confirmRouteSaved()
+RouteDetails -> User : confirmRouteSaved()
+
+User -> RouteDetails : clickShareButton()
+RouteDetails -> RouteDetails : prepareRouteForCopy(routeDetails)
+RouteDetails -> RouteDetails : copyToClipboard(routeDetails)
+RouteDetails -> User : confirmRouteCopiedToClipboard()
+
+@enduml

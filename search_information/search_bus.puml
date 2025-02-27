@@ -1,0 +1,39 @@
+@startuml
+
+actor User
+participant SearchScreen
+participant "Stop API" as StopAPI
+participant "RouteDetailScreen" as RouteDetailScreen
+participant "MapScreen" as RouteMapScreen
+
+== Method 1: Search by Typing ==
+User -> SearchScreen : startTypingSearchQuery(query)
+SearchScreen -> StopAPI : searchRoutes(query)
+StopAPI -> SearchScreen : returnSearchResults(routes)
+SearchScreen -> User : displaySearchResults(routes)
+
+User -> SearchScreen : clickSearchResult(route)
+SearchScreen -> RouteDetailScreen : navigateToRouteDetailScreen(route)
+RouteDetailScreen -> StopAPI : getRouteDetails(route)
+StopAPI -> RouteDetailScreen : returnRouteDetails(routeDetails)
+RouteDetailScreen -> RouteDetailScreen : displayRouteDetails(routeDetails)
+RouteDetailScreen -> RouteMapScreen : displayRouteOnMap(routeDetails)
+RouteMapScreen -> User : showRouteOnMap(routeDetails)
+
+== Method 2: Select Bus Route on Map ==
+User -> SearchScreen : clickSelectBusRouteButton()
+SearchScreen -> SelectMapScreen : navigateToSelectMapScreen()
+User -> SelectMapScreen : selectRouteOnMap(routeLocation)
+SelectMapScreen -> SearchScreen : returnToSearchScreenWithSelectedRoute(routeLocation)
+SearchScreen -> SearchScreen : updateSearchFieldsWithRoute(routeLocation)
+SearchScreen -> User : displayUpdatedSearchFields(route)
+
+User -> SearchScreen : clickSearchResult(route)
+SearchScreen -> RouteDetailScreen : navigateToRouteDetailScreen(route)
+RouteDetailScreen -> StopAPI : getRouteDetails(route)
+StopAPI -> RouteDetailScreen : returnRouteDetails(routeDetails)
+RouteDetailScreen -> RouteDetailScreen : displayRouteDetails(routeDetails)
+RouteDetailScreen -> RouteMapScreen : displayRouteOnMap(routeDetails)
+RouteMapScreen -> User : showRouteOnMap(routeDetails)
+
+@enduml

@@ -1,0 +1,19 @@
+@startuml
+
+actor User
+participant HomeScreen
+participant RouteScreen
+participant "Stop API" as StopAPI
+
+User -> HomeScreen : clickRouteButton()
+HomeScreen -> RouteScreen : navigateToRouteScreen()
+User -> RouteScreen : inputStartStopAndDestination(startStop, viaStops, endStop)
+RouteScreen -> StopAPI : calculateRoute(startStop, viaStops, endStop)
+StopAPI -> StopAPI : calculateOptimalRoute()
+StopAPI -> RouteScreen : returnRouteInfo(routeDetails)
+RouteScreen -> User : displayRouteInfo(routeDetails)
+User -> RouteScreen : selectFilter(filterType)
+RouteScreen -> RouteScreen : applyFilter(filterType, routeDetails)
+RouteScreen -> User : displayFilteredRouteInfo(filteredRouteDetails)
+
+@enduml

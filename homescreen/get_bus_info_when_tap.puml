@@ -1,0 +1,14 @@
+@startuml
+
+actor User
+participant HomeScreen
+participant "Stop API" as StopAPI
+participant Map
+
+User -> Map : tapBusStopIcon(busStop)
+Map -> HomeScreen : notifyTapOnBusStop(busStop)
+HomeScreen -> StopAPI : getBusArrivalInfo(busStop)
+StopAPI -> HomeScreen : returnBusArrivalInfo(busArrivals)
+HomeScreen -> User : displayBusArrivalInfo(busArrivals)
+
+@enduml
