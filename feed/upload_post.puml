@@ -1,11 +1,18 @@
-@startuml
+@startuml upload_post
+
+hide footbox
 
 actor User
 participant "Upload Post Page" as UI
-participant "API Service" as API
+participant "Django\nURL Dispatcher" as API
+participant "CreatePost\nview" as view_post
+participant "Post\nSerilizer" as serializer
+database "Post" as table_post
 
 == User Creates a Post ==
 User -> UI: Open Upload Post Page
+activate User
+activate UI
 UI -> User: Display post form
 
 == User Inputs Post Data ==
@@ -15,10 +22,29 @@ UI -> UI: Validate inputs
 
 == Submit Post to API ==
 User -> UI: Tap 'Post'
-UI -> API: POST /upload-post with post data
-API -> API: Store post data in database
+UI -> API: POST /post with post data
+activate API
+
+' API Call
+API -> view_post: post(post_data)
+activate view_post
+view_post -> serializer: post(request)
+activate serializer
+serializer -> table_post: serializer(query_set)
+activate table_post
+
+table_post --> serializer: post_data
+deactivate table_post
+serializer --> view_post: post_data
+deactivate serializer
+view_post --> API: response()
+deactivate view_post
 API -> UI: Return success/failure response
+deactivate API
 
 == Display Upload Result ==
 UI -> User: Show success or error message
+deactivate UI
+deactivate User
+
 @enduml
