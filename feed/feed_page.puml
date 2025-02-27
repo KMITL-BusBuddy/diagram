@@ -1,0 +1,120 @@
+@startuml feed_page
+
+hide footbox
+
+actor User
+participant "Feed Page" as UI
+participant "General News\nCard" as GeneralNews
+participant "Station News\nCard" as StationNews
+participant "Django\nURL Dispatcher" as API
+participant "Post\nview" as view_post
+participant "Post\nSerilizer" as serializer
+database "Post" as table_post
+
+== Load Feed Posts ==
+
+activate User
+User -> UI: Open Feed Page
+activate UI
+UI -> API: GET /feed-posts
+activate API
+
+' API Call
+API -> view_post: get_all_posts()
+activate view_post
+view_post -> serializer: get(request)
+activate serializer
+serializer -> table_post: serializer(query_set)
+activate table_post
+
+table_post --> serializer: post_lists
+deactivate table_post
+serializer --> view_post: post_lists
+deactivate serializer
+view_post --> API: response()
+deactivate view_post
+API -> UI: Return feed posts list
+deactivate API
+
+'  Render feed posts
+UI -> GeneralNews: Create General News Card
+activate GeneralNews
+UI -> StationNews: Create Station News Card
+activate StationNews
+
+GeneralNews -> UI: Display General News Card
+deactivate GeneralNews
+StationNews -> UI: Display Station News Card
+deactivate StationNews
+
+UI -> User: Display feed posts
+
+
+== Like, Comment, Share ==
+alt User Interactions
+    User -> UI: Tap Like
+    UI -> API: POST /post/like/{post_id}
+    activate API
+    API -> view_post: post(post_id)
+    activate view_post
+    view_post -> serializer: post(request)
+    activate serializer
+    serializer -> table_post: serializer(query_set)
+    activate table_post
+    table_post --> serializer: updated_post
+    deactivate table_post
+    serializer --> view_post: updated_post
+    deactivate serializer
+    view_post --> API: response()
+    deactivate view_post
+    API -> UI: Return updated like count
+    deactivate API
+
+    alt General News
+        UI -> GeneralNews: Update like count
+        activate GeneralNews
+        GeneralNews -> UI: Update like count UI
+        deactivate GeneralNews
+    else Station News
+        UI -> StationNews: Update like count
+        activate StationNews
+        StationNews -> UI: Update like count UI
+        deactivate StationNews
+    end
+
+    UI -> User: Update UI
+else User Interactions
+    User -> UI: Add Comment
+    UI -> API: POST /post/comment/{post_id}
+    activate API
+    API -> view_post: add_comment(post_id)
+    activate view_post
+    view_post -> serializer: add_comment(request)
+    activate serializer
+    serializer -> table_post: add_comment(post_id)
+    activate table_post
+    table_post --> serializer: updated_post
+    deactivate table_post
+    serializer --> view_post: updated_post
+    deactivate serializer
+    view_post --> API: response()
+    deactivate view_post
+    API -> UI: Return updated comments
+    deactivate API
+
+    alt General News 
+        UI -> GeneralNews: Update comment section
+        activate GeneralNews
+        GeneralNews -> UI: Update comment section
+        deactivate GeneralNews
+    else Station News
+        UI -> StationNews: Update comment section
+        activate StationNews
+        StationNews -> UI: Update comment section
+        deactivate StationNews
+    end
+
+    UI -> User: Update comment section
+end
+
+@enduml

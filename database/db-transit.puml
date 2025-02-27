@@ -18,7 +18,6 @@ entity transit_stops {
 entity transit_stop_details {
     has_atms: BOOLEAN
     has_car_parks: BOOLEAN
-    has_toilets: BOOLEAN
     has_wheelchair_access: BOOLEAN
     --
     * stop_id: INT <<FK>>
@@ -70,12 +69,22 @@ transit_lines }|..o| transport_types
 entity bus_realtime {
     * **bus_id: INT <<PK>>**
     pdat: VARCHAR(255)
-    paht_no: VARCHAR(255)
     lat: DOUBLE
     lon: DOUBLE
     ts: DATETIME
     speed: DOUBLE
-    update_flage: INT
     --
-    
+    * path_no_id: INT <<FK>>    
 }
+
+bus_realtime }o--|| transit_lines
+
+entity line_stops {
+    sequence_number: INT
+    --
+    * line_id: INT <<FK>>
+    * stop_id: INT <<FK>>
+}
+
+line_stops }o--o{ transit_lines
+line_stops }o--o{ transit_stops
