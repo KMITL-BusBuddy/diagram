@@ -1,19 +1,73 @@
-@startuml
+@startuml stop_nearby
+
+hide footbox
 
 actor User
-participant HomeScreen
-participant "Stop API" as StopAPI
-participant "Feed API" as FeedAPI
+participant HomeScreen as UI
+participant "Django\nURL Dispatcher" as API
+participant "NearbyStops\nview" as view_stop
+participant "Post\nview" as view_post
+participant "TransitStop\nService" as service
+participant "Post\nService" as service_post
+participant "TransitLines\nSerilizer" as serializer
+participant "Post\nSerilizer" as serializer_post
+database "transit_lines" as table_transit
+database "post" as table_post
 
-User -> HomeScreen : openHomeScreen()
-HomeScreen -> HomeScreen : getUserLocation() 
-HomeScreen -> StopAPI : getAllBusStops()
-StopAPI -> HomeScreen : returnAllBusStops(busStops)
-HomeScreen -> HomeScreen : calculateNearestBusStop(userLocation, busStops)
-HomeScreen -> StopAPI : getBusArrivalInfo(nearestBusStop)
-StopAPI -> HomeScreen : returnBusArrivalInfo(busArrivals)
-HomeScreen -> FeedAPI : getBusStopNews(nearestBusStop)
-FeedAPI -> HomeScreen : returnBusStopNews(news)
-HomeScreen -> User : displayBusStopNewsAndArrivals(news, busArrivals)
+activate User
+User -> UI : Open Home Screen
+activate UI
+
+opt Get User Location
+    UI -> UI : getUserLocation()
+end
+
+UI -> API : GET /transit-stops/nearby
+activate API
+
+' API Call
+API -> view_stop : get(params)
+activate view_stop
+view_stop -> service : get_arrival_transit(stop_id)
+activate service
+service -> serializer : get(request)
+activate serializer
+serializer -> table_transit : serializer(query_set)
+activate table_transit
+
+table_transit --> serializer : line_lists
+deactivate table_transit
+serializer --> service : line_lists
+deactivate serializer
+service --> view_stop : line_lists
+deactivate service
+view_stop --> API : response()
+deactivate view_stop
+API --> UI : Return arrival \ntransit lines list
+
+
+' API Call
+UI -> API : GET /posts/nearby
+API -> view_post : get(params)
+activate view_post
+view_post -> service_post : get_nearby_post(params)
+activate service_post
+service_post -> serializer_post : get(request)
+activate serializer_post
+serializer_post -> table_post : serializer(query_set)
+activate table_post
+table_post --> serializer_post : post_lists
+deactivate table_post
+serializer_post --> service_post : post_lists
+deactivate serializer_post
+service_post --> view_post : post_lists
+deactivate service_post
+view_post --> API : response()
+deactivate view_post
+API --> UI : Return nearby posts list
+deactivate API
+
+' Render feed posts
+UI -> User : display posts and arrival transit 
 
 @enduml

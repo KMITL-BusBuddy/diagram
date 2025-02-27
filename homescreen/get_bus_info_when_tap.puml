@@ -8,8 +8,8 @@ participant Map
 participant "Django\nURL Dispatcher" as API
 participant "TransitStop\nview" as view
 participant "TransitStop\nService" as service
-participant "TransitStop\nSerilizer" as serializer
-database "TransitStops" as table
+participant "TransitLine\nSerilizer" as serializer
+database "transit_lines" as table
 
 activate User
 User -> UI: Tap on bus stop icon
