@@ -28,22 +28,24 @@ activate API
 ' API Call
 API -> view_stop : get(params)
 activate view_stop
-view_stop -> service : get_arrival_transit(stop_id)
+view_stop -> service : get_nearby_range(params)
+service -> service : get_arrival_transit(stop_id)
+
 activate service
 service -> serializer : get(request)
 activate serializer
 serializer -> table_transit : serializer(query_set)
 activate table_transit
 
-table_transit --> serializer : line_lists
+table_transit --> serializer : stop_lists
 deactivate table_transit
-serializer --> service : line_lists
+serializer --> service : stop_lists
 deactivate serializer
-service --> view_stop : line_lists
+service --> view_stop : stop_lists
 deactivate service
 view_stop --> API : response()
 deactivate view_stop
-API --> UI : Return arrival \ntransit lines list
+API --> UI : Return nearby stops list
 
 
 ' API Call

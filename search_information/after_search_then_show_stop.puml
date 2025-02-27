@@ -1,0 +1,48 @@
+@startuml after search transit stops
+
+hide footbox
+
+actor User
+participant "Home\nScreen" as HomeScreen
+participant "Map\nScreen" as HomeMapScreen
+
+participant "Django\nURL Dispatcher" as API
+participant "TransitStop\nView" as view
+participant "TransitStop\nSerilizer" as serializer
+database "line_shapes" as table_shapes
+
+' divide from search_stop_information.puml
+
+' Select a Bus Stop
+User -> HomeScreen : click on bus stop \nfrom SearchScreen
+activate User
+activate HomeScreen
+HomeScreen -> API : GET /transit-stops/arrival \nwith stop_id
+activate API
+
+' API Call
+API -> view: get(stop_id)
+activate view
+view -> serializer: get(request)
+activate serializer
+serializer -> table_shapes: serializer(query_set)
+activate table_shapes
+table_shapes --> serializer: line_arrivals
+deactivate table_shapes
+serializer --> view: line_arrivals
+deactivate serializer
+view --> API: response()
+deactivate view
+
+' Display Bus Arrival Info
+API -> HomeScreen : returnArrivalInfo()
+deactivate API
+HomeScreen -> HomeMapScreen : displayMap(busArrival)
+deactivate HomeScreen
+activate HomeMapScreen
+HomeMapScreen --> User : show bus arrival info on map
+deactivate HomeMapScreen
+deactivate User
+
+
+@enduml

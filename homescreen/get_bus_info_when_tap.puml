@@ -1,4 +1,4 @@
-@startuml bus_arrivals
+@startuml bus_info
 
 hide footbox
 
@@ -8,32 +8,33 @@ participant Map
 participant "Django\nURL Dispatcher" as API
 participant "TransitStop\nview" as view
 participant "TransitStop\nService" as service
-participant "TransitLine\nSerilizer" as serializer
-database "transit_lines" as table
+participant "TransitStop\nSerilizer" as serializer
+database "line_shapes" as table
+
 
 activate User
 User -> UI: Tap on bus stop icon
 activate UI
 UI -> Map: notifyTapOnBusStop(busStop)
 activate Map
-Map -> API: GET /transit-stop \nwith stop_id
+Map -> API: GET /transit-stop/arrival \nwith stop_id
 activate API
 
 ' API Call
 API -> view: get(stop_id)
 activate view
-view -> service: get_bus_arrival_info(stop_id)
+view -> service: get_line_arrival_info(stop_id)
 activate service
 service -> serializer: get(request)
 activate serializer
 serializer -> table: serializer(query_set)
 activate table
 
-table --> serializer: bus_arrivals
+table --> serializer: line_arrivals
 deactivate table
-serializer --> service: bus_arrivals
+serializer --> service: line_arrivals
 deactivate serializer
-service --> view: bus_arrivals
+service --> view: line_arrivals
 deactivate service
 view --> API: response()
 deactivate view

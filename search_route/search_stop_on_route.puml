@@ -1,12 +1,43 @@
-@startuml
+@startuml PlanPage - Part: search transit stops
+
+hide footbox
 
 actor User
-participant RouteScreen
-participant "Stop API" as StopAPI
 
-User -> RouteScreen : startTypingSearchQuery(query)
-RouteScreen -> StopAPI : searchBusStops(query)
-StopAPI -> RouteScreen : returnSearchResults(busStops)
-RouteScreen -> User : displaySearchResults(busStops)
+participant "Route\nScreen" as RouteScreen
+
+participant "Django\nURL Dispatcher" as API
+participant "TransitStop\nview" as view
+participant "TransitStop\nSerilizer" as serializer
+participant "TransitStop\nServer" as server
+database "transit_stops" as table
+
+
+User -> RouteScreen : type search query
+activate User
+activate RouteScreen
+RouteScreen -> API : GET /transit-stops/search \nwith query_text
+activate API
+
+' API Call
+API -> view: get(query_text)
+activate view
+view -> serializer: get(request)
+activate serializer
+serializer -> table: serializer(query_set)
+activate table
+table --> serializer: transit_stops_data
+deactivate table
+serializer --> view: transit_stops_data
+deactivate serializer
+view --> API: response()
+deactivate view
+
+' Display Search Results
+API --> RouteScreen : busStops
+deactivate API
+RouteScreen -> User : display search results
+deactivate RouteScreen
+deactivate User
 
 @enduml

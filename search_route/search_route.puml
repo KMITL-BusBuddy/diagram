@@ -1,19 +1,64 @@
-@startuml
+@startuml PlanPage - Part: get planning
+
+hide footbox
 
 actor User
-participant HomeScreen
-participant RouteScreen
-participant "Stop API" as StopAPI
+participant "HomeScreen" as HomeScreen
+participant "Route\nScreen" as RouteScreen
 
-User -> HomeScreen : clickRouteButton()
+participant "Django\nURL Dispatcher" as API
+participant "PlanRoute\nview" as view
+participant "PlanRoute\nService" as service
+participant "PlanRoute\nSerilizer" as serializer
+participant "PlanRoute\nServer" as server
+database "cache_plan_route" as table
+
+
+User -> HomeScreen : click on create \nroute planning
+activate User
+activate HomeScreen
 HomeScreen -> RouteScreen : navigateToRouteScreen()
-User -> RouteScreen : inputStartStopAndDestination(startStop, viaStops, endStop)
-RouteScreen -> StopAPI : calculateRoute(startStop, viaStops, endStop)
-StopAPI -> StopAPI : calculateOptimalRoute()
-StopAPI -> RouteScreen : returnRouteInfo(routeDetails)
-RouteScreen -> User : displayRouteInfo(routeDetails)
-User -> RouteScreen : selectFilter(filterType)
-RouteScreen -> RouteScreen : applyFilter(filterType, routeDetails)
-RouteScreen -> User : displayFilteredRouteInfo(filteredRouteDetails)
+deactivate HomeScreen
+activate RouteScreen
+
+User -> RouteScreen : input start, destination location
+
+opt Filter Route
+    User -> RouteScreen : select filter type
+    RouteScreen -> RouteScreen : applyFilter()
+    RouteScreen -> User : display filtered route
+end
+
+RouteScreen -> API : GET /plan-route \nwith startLoc, destinationLoc, \nfilterType
+activate API
+
+' API Call
+API -> view: get(params)
+activate view
+view -> service : get_plan_route(params)
+activate service
+service -> server : GET /planConnection \nwith params
+activate server
+server --> service : plan_route_info
+deactivate server
+
+service -> serializer : query_set
+activate serializer
+serializer -> table : serializer(query_set)
+activate table
+table --> serializer : plan_route_info
+deactivate table
+serializer -->  service : plan_route_info
+deactivate serializer
+
+service --> view : plan_route_info
+deactivate service
+view --> API : response()
+deactivate view
+
+' Display Route Info
+API --> RouteScreen : returnRouteInfo(routeDetails)
+deactivate API
+RouteScreen -> User : display route planning
 
 @enduml

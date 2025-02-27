@@ -1,47 +1,76 @@
-@startuml
+@startuml search transit stops
+
+hide footbox
 
 actor User
-participant SearchScreen
-participant "Stop API" as StopAPI
-participant "SelectMapScreen" as SelectMapScreen
-participant HomeScreen
-participant "MapScreen" as HomeMapScreen
-participant "Feed API" as FeedAPI
+participant "Search\nScreen" as SearchScreen
+participant "SelectMap\nScreen" as SelectMapScreen
 
-== Method 1: Search by Typing ==
-User -> SearchScreen : startTypingSearchQuery(query)
-SearchScreen -> StopAPI : searchBusStops(query)
-StopAPI -> SearchScreen : returnSearchResults(busStops)
-SearchScreen -> User : displaySearchResults(busStops)
+participant "Django\nURL Dispatcher" as API
+participant "TransitStop\nView" as view
+participant "TransitStop\nSerilizer" as serializer
+database "transit_stops" as table_stop
 
-User -> SearchScreen : clickSearchResult(busStop)
-SearchScreen -> HomeScreen : navigateToHomeScreenWithMap(busStop)
-HomeScreen -> StopAPI : getArrivalInfo(busStop)
-StopAPI -> HomeScreen : returnArrivalInfo(busArrivalDetails)
-HomeScreen -> HomeMapScreen : displayMapWithArrivalInfo(busArrivalDetails)
-HomeMapScreen -> User : showMapWithBusArrivalDetails()
 
-HomeScreen -> FeedAPI : getBusStopNews(nearestBusStop)
-FeedAPI -> HomeScreen : returnBusStopNews(news)
-HomeScreen -> User : showBusStopNews(news)
+opt Search by Typing
+    User -> SearchScreen : enter search query
+    activate User
+    activate SearchScreen
+    SearchScreen -> API : GET /transit-stops/search \nwith query_text
+    activate API
 
-== Method 2: Select Bus Stop on Map ==
-User -> SearchScreen : clickSelectBusStopButton()
-SearchScreen -> SelectMapScreen : navigateToSelectMapScreen()
-User -> SelectMapScreen : selectBusStopOnMap(busStopLocation)
-SelectMapScreen -> SearchScreen : returnToSearchScreenWithSelectedBusStop(busStopLocation)
-SearchScreen -> SearchScreen : updateSearchFieldsWithBusStop(busStopLocation)
-SearchScreen -> User : displayUpdatedSearchFields(busStop)
+    ' API Call
+    API -> view: get(query_text)
+    activate view
+    view -> serializer: get(request)
+    activate serializer
+    serializer -> table_stop: serializer(query_set)
+    activate table_stop
+    table_stop --> serializer: transit_stops_data
+    deactivate table_stop
+    serializer --> view: transit_stops_data
+    deactivate serializer
+    view --> API: response()
+    deactivate view
+    
+    ' Display Search Results
+    API --> SearchScreen : stops_data
+    deactivate API
+    SearchScreen --> User : display search results
 
-User -> SearchScreen : clickSearchResult(busStop)
-SearchScreen -> HomeScreen : navigateToHomeScreenWithMap(busStop)
-HomeScreen -> StopAPI : getArrivalInfo(busStop)
-StopAPI -> HomeScreen : returnArrivalInfo(busArrivalDetails)
-HomeScreen -> HomeMapScreen : displayMapWithArrivalInfo(busArrivalDetails)
-HomeMapScreen -> User : showMapWithBusArrivalDetails()
+else Select Bus Stop on Map
+    User -> SearchScreen : click SelectBusStop Button
+    SearchScreen -> SelectMapScreen : goToSelectMapScreen()
+    activate SelectMapScreen
 
-HomeScreen -> FeedAPI : getBusStopNews(nearestBusStop)
-FeedAPI -> HomeScreen : returnBusStopNews(news)
-HomeScreen -> User : showBusStopNews(news)
+    ' Select Bus Stop on Map
+    User -> SelectMapScreen : select bus stop on map
+    SelectMapScreen -> API : GET /transit-stops \nwith stop_id
+    activate API
+    API -> view: get(stop_id)
+    activate view
+    view -> serializer: get(request)
+    activate serializer
+    serializer -> table_stop: serializer(query_set)
+    activate table_stop
+    table_stop --> serializer: transit_stop_data
+    deactivate table_stop
+    serializer --> view: transit_stop_data
+    deactivate serializer
+    view --> API: response()
+    deactivate view
+
+    ' Display Bus Stop on Map
+    API --> SelectMapScreen: stop_data
+    deactivate API
+    SelectMapScreen -> SearchScreen : returnToSearchScreen \nwith stop_data
+    deactivate SelectMapScreen
+    SearchScreen -> SearchScreen : updateSearchFields()
+    SearchScreen --> User : display updated search fields
+    deactivate SearchScreen
+    deactivate User
+end
+
+' divide to after_search_stop_get_arrival.puml
 
 @enduml

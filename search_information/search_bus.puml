@@ -1,39 +1,95 @@
-@startuml
+@startuml search transit lines
+
+hide footbox
 
 actor User
-participant SearchScreen
-participant "Stop API" as StopAPI
-participant "RouteDetailScreen" as RouteDetailScreen
-participant "MapScreen" as RouteMapScreen
+participant "SearchScreen" as SearchScreen
+participant "SelectMap\nScreen" as SelectMapScreen
+participant "Django\nURL Dispatcher" as API
 
-== Method 1: Search by Typing ==
-User -> SearchScreen : startTypingSearchQuery(query)
-SearchScreen -> StopAPI : searchRoutes(query)
-StopAPI -> SearchScreen : returnSearchResults(routes)
-SearchScreen -> User : displaySearchResults(routes)
+participant "TransitLine\nView" as view
+participant "TransitLine\nSerilizer" as serializer
+database "transit_lines" as table
 
-User -> SearchScreen : clickSearchResult(route)
-SearchScreen -> RouteDetailScreen : navigateToRouteDetailScreen(route)
-RouteDetailScreen -> StopAPI : getRouteDetails(route)
-StopAPI -> RouteDetailScreen : returnRouteDetails(routeDetails)
-RouteDetailScreen -> RouteDetailScreen : displayRouteDetails(routeDetails)
-RouteDetailScreen -> RouteMapScreen : displayRouteOnMap(routeDetails)
-RouteMapScreen -> User : showRouteOnMap(routeDetails)
 
-== Method 2: Select Bus Route on Map ==
-User -> SearchScreen : clickSelectBusRouteButton()
-SearchScreen -> SelectMapScreen : navigateToSelectMapScreen()
-User -> SelectMapScreen : selectRouteOnMap(routeLocation)
-SelectMapScreen -> SearchScreen : returnToSearchScreenWithSelectedRoute(routeLocation)
-SearchScreen -> SearchScreen : updateSearchFieldsWithRoute(routeLocation)
-SearchScreen -> User : displayUpdatedSearchFields(route)
+opt Search by Typing
+    User -> SearchScreen : enter search query
+    activate User
+    activate SearchScreen
+    SearchScreen -> API : GET /transit-lines/search \nwith query_text
+    activate API
 
-User -> SearchScreen : clickSearchResult(route)
-SearchScreen -> RouteDetailScreen : navigateToRouteDetailScreen(route)
-RouteDetailScreen -> StopAPI : getRouteDetails(route)
-StopAPI -> RouteDetailScreen : returnRouteDetails(routeDetails)
-RouteDetailScreen -> RouteDetailScreen : displayRouteDetails(routeDetails)
-RouteDetailScreen -> RouteMapScreen : displayRouteOnMap(routeDetails)
-RouteMapScreen -> User : showRouteOnMap(routeDetails)
+    ' API Call
+    API -> view: get(query_text)
+    activate view
+    view -> serializer: get(request)
+    activate serializer
+    serializer -> table: serializer(query_set)
+    activate table
+    table --> serializer: transit_lines_data
+    deactivate table
+    serializer --> view: transit_lines_data
+    deactivate serializer
+    view --> API: response()
+    deactivate view
+
+    ' Display Search Results 
+    API --> SearchScreen : routes_data
+    deactivate API
+    SearchScreen --> User : displaySearchResults(routes)
+
+' select a route on map
+else Select Bus Route on Map
+    User -> SearchScreen : click select route on map
+    SearchScreen -> SelectMapScreen : goToSelectMapScreen()
+    activate SelectMapScreen
+
+    ' Select Route on Map
+    User -> SelectMapScreen : select route on map
+    SelectMapScreen -> API : GET /transit-lines \nwith line_id
+    activate API
+    API -> view: get(line_id)
+    activate view
+    view -> serializer: get(request)
+    activate serializer
+    serializer -> table: serializer(query_set)
+    activate table
+    table --> serializer: transit_line_data
+    deactivate table
+    serializer --> view: transit_line_data
+    deactivate serializer
+    view --> API: response()
+    deactivate view
+
+    ' Display Route on Map
+    API --> SelectMapScreen: route_data
+    deactivate API
+    SelectMapScreen -> SearchScreen : returnToSearchScreen \nwith route_data
+    deactivate SelectMapScreen
+    SearchScreen -> SearchScreen : updateSearchFields()
+    SearchScreen --> User : display selected route
+    deactivate SearchScreen
+    deactivate User
+end
+
+
+' divide to after_search_bus_get_details.puml
+
+' ' Select a Route
+' User -> SearchScreen : click on a route
+
+' SearchScreen -> RouteDetailScreen : goToRouteDetailScreen() \nwith route data
+' deactivate SearchScreen
+' activate RouteDetailScreen
+' RouteDetailScreen -> RouteDetailScreen : displayRouteDetails()
+' RouteDetailScreen -> RouteMapScreen : displayRouteOnMap()
+' deactivate RouteDetailScreen
+' activate RouteMapScreen
+
+' ' Show Route on Map
+' RouteMapScreen --> User : showRouteOnMap()
+' deactivate RouteMapScreen
+' deactivate User
+
 
 @enduml

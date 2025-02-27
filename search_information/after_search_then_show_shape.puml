@@ -1,0 +1,24 @@
+@startuml after search transit stops
+
+hide footbox
+
+actor User
+participant "RouteDetail\nScreen" as RouteDetailScreen
+participant "MapScreen" as RouteMapScreen
+
+' Select a Route
+User -> RouteDetailScreen : click on a route \nfrom SearchScreen
+activate User
+activate RouteDetailScreen
+
+RouteDetailScreen -> RouteDetailScreen : displayRouteDetails()
+RouteDetailScreen -> RouteMapScreen : displayRouteOnMap()
+deactivate RouteDetailScreen
+activate RouteMapScreen
+
+' Show Route on Map
+RouteMapScreen --> User : showRouteOnMap()
+deactivate RouteMapScreen
+deactivate User
+
+@enduml

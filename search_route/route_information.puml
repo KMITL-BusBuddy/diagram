@@ -1,34 +1,85 @@
-@startuml
+@startuml Plan
+
+hide footbox
 
 actor User
-participant RouteScreen
-participant RouteDetails
-participant "Stop API" as StopAPI
+participant "Route\nScreen" as RouteScreen
+participant "RouteDetails\nScreen" as RouteDetails
 
-User -> RouteScreen : selectRoute(routeDetails)
-RouteScreen -> RouteDetails : navigateToRouteDetails(routeDetails)
-RouteDetails -> StopAPI : getRouteDetails(routeDetails)
-StopAPI -> StopAPI : fetchRouteInfo(routeDetails)
-StopAPI -> RouteDetails : returnRouteDetails(routeInfo)
+participant "Django\nURL Dispatcher" as API
+participant "BusRealtime\nview" as view
+participant "Favorite\nview" as view_favorite
+participant "BusRealtime\nService" as service
+participant "Favorite\nSerilizer" as serializer_favorite
+database "cache_bus_realtime" as table_realtime
+database "favorite" as table_favorite
+
+
+User -> RouteScreen : select planning route \nfrom plan_route_info
+activate User
+activate RouteScreen
+RouteScreen -> RouteDetails : goToRouteDetails()
+deactivate RouteScreen
+activate RouteDetails
 RouteDetails -> RouteDetails : displayRouteInfo(routeInfo)
 RouteDetails -> RouteDetails : drawRouteOnMap(routeInfo)
-User -> RouteDetails : clickTrackMyBusButton()
-RouteDetails -> StopAPI : findNearestBusRoute(userLocation)
-StopAPI -> StopAPI : findClosestBusRoute(userLocation)
-StopAPI -> RouteDetails : returnNearestBusRoute(busRoute)
-RouteDetails -> User : displayNearestBusRoute(busRoute)
 
-User -> RouteDetails : clickBookmarkButton()
-RouteDetails -> RouteDetails : promptUserForRouteName()
-User -> RouteDetails : enterRouteName(routeName)
-RouteDetails -> StopAPI : saveRouteToDatabase(routeDetails, routeName)
-StopAPI -> StopAPI : saveRouteToDB(routeDetails, routeName)
-StopAPI -> RouteDetails : confirmRouteSaved()
-RouteDetails -> User : confirmRouteSaved()
+User -> RouteDetails : click find nearest bus route
+RouteDetails -> API : GET /bus-realtime/nearest \nwith user_location, stop_id
+activate API
 
-User -> RouteDetails : clickShareButton()
-RouteDetails -> RouteDetails : prepareRouteForCopy(routeDetails)
-RouteDetails -> RouteDetails : copyToClipboard(routeDetails)
-RouteDetails -> User : confirmRouteCopiedToClipboard()
+' API Call
+API -> view: get(params)
+activate view
+view -> service : get_buses_nearby(params)
+activate service
+service -> table_realtime : get_query()
+activate table_realtime
+table_realtime --> service : bus_realtime_info
+deactivate table_realtime
+service --> view : bus_realtime_info
+deactivate service
+view --> API : response()
+deactivate view
+
+' Display Nearest Bus Route
+API --> RouteDetails : bus_realtime_info
+deactivate API
+RouteDetails --> User : display nearest bus
+
+opt Bookmark Route
+    User -> RouteDetails : click Bookmark button
+    RouteDetails -> RouteDetails : promptUserForRouteName()
+    User -> RouteDetails : enter route name
+    RouteDetails -> API : POST /favorite-route \nwith plan_name, plan_config
+    activate API
+
+    ' API Call
+    API -> view_favorite: post(params)
+    activate view_favorite
+    view_favorite -> serializer_favorite : post(request)
+    activate serializer_favorite
+    serializer_favorite -> table_favorite : serializer(query_set)
+    activate table_favorite
+    table_favorite --> serializer_favorite : status
+    deactivate table_favorite
+    serializer_favorite --> view_favorite : status
+    deactivate serializer_favorite
+    view_favorite --> API : response()
+    deactivate view_favorite
+    API -> RouteDetails : confirmRouteSaved()
+    deactivate API
+    RouteDetails -> User : confirmRouteSaved()
+end
+
+opt Share Route
+    User -> RouteDetails : click Share button
+    RouteDetails -> RouteDetails : prepareRouteForCopy(routeDetails)
+    RouteDetails -> RouteDetails : copyToClipboard(routeDetails)
+
+    RouteDetails -> User : copied to clipboard
+end
+
+deactivate User
 
 @enduml
