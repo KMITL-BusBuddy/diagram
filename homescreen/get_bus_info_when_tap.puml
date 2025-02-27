@@ -1,14 +1,49 @@
-@startuml
+@startuml bus_arrivals
+
+hide footbox
 
 actor User
-participant HomeScreen
-participant "Stop API" as StopAPI
+participant HomeScreen as UI
 participant Map
+participant "Django\nURL Dispatcher" as API
+participant "TransitStop\nview" as view
+participant "TransitStop\nService" as service
+participant "TransitStop\nSerilizer" as serializer
+database "TransitStops" as table
 
-User -> Map : tapBusStopIcon(busStop)
-Map -> HomeScreen : notifyTapOnBusStop(busStop)
-HomeScreen -> StopAPI : getBusArrivalInfo(busStop)
-StopAPI -> HomeScreen : returnBusArrivalInfo(busArrivals)
-HomeScreen -> User : displayBusArrivalInfo(busArrivals)
+activate User
+User -> UI: Tap on bus stop icon
+activate UI
+UI -> Map: notifyTapOnBusStop(busStop)
+activate Map
+Map -> API: GET /transit-stop \nwith stop_id
+activate API
+
+' API Call
+API -> view: get(stop_id)
+activate view
+view -> service: get_bus_arrival_info(stop_id)
+activate service
+service -> serializer: get(request)
+activate serializer
+serializer -> table: serializer(query_set)
+activate table
+
+table --> serializer: bus_arrivals
+deactivate table
+serializer --> service: bus_arrivals
+deactivate serializer
+service --> view: bus_arrivals
+deactivate service
+view --> API: response()
+deactivate view
+API --> Map: response()
+deactivate API
+
+' Display bus arrival info
+Map --> UI: returnBusArrivalInfo(busArrivals)
+deactivate Map
+UI --> User: display bus arrival info
+deactivate UI
 
 @enduml
