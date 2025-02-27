@@ -1,23 +1,54 @@
-@startuml
+@startuml notification_screen
+
+hide footbox
 
 actor User
-participant "Notification Page" as UI
-participant "Notification API" as API
+participant "Notification\nPage" as UI
+participant "Django\nURL Dispatcher" as API
+participant "Alert\nview" as view
+' participant "Alert\nService" as service
+participant "Alert\nSerilizer" as serializer
+database "alert" as table
+
 
 == Load Notifications ==
 User -> UI: Open Notification Page
-UI -> API: GET /notifications
-API -> API: Retrieve notifications
+activate User
+activate UI
+UI -> API: GET /alert \nwith user_id
+activate API
+
+' API Call
+API -> view: get(user_id)
+activate view
+view -> serializer: get(request)
+activate serializer
+serializer -> table: serializer(query_set)
+activate table
+table --> serializer: alerts_data
+deactivate table
+serializer --> view: alerts_data
+deactivate serializer
+view --> API: response()
+deactivate view
+
+' Display Notifications
 API -> UI: Return notification data
+deactivate API
 UI -> User: Display notifications list
 
-== Search Notification ==
-User -> UI: Enter search term
-UI -> UI: Filter notifications
-UI -> User: Display filtered results
+opt Search Notifications
+    User -> UI: Enter search term
+    UI -> UI: Filter notifications
+    UI --> User: Display filtered results
+end
 
-== View Notification Details ==
-User -> UI: Tap on a notification
-UI -> UI: Navigate to Notification Route Page
+alt View Notification Details
+    User -> UI: Tap on a notification
+    UI -> UI: Navigate to Notification Route Page
+end
+
+deactivate UI
+deactivate User
 
 @enduml

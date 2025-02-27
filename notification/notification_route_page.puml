@@ -1,32 +1,80 @@
-@startuml
+@startuml noficition_route_page
+
+hide footbox
 
 actor User
-participant "Notification Page" as UI
-participant "Notification API" as API
-participant "Notification Route Page" as RouteUI
-participant "Timeline Component" as Timeline
+participant "Notification\nPage" as UI
+' participant "Notification Route\nPage" as RouteUI
+participant "Timeline\nComponent" as Timeline
+
+participant "Django\nURL Dispatcher" as API
+participant "Alert\nview" as view
+participant "Alert\nService" as service
+participant "Alert\nSerilizer" as serializer
+database "alert" as table
 
 == Load Notifications ==
 User -> UI: Open Notification Page
-UI -> API: GET /notifications
-API -> API: Retrieve notification data
+activate User
+activate UI
+UI -> API: GET /alert \nwith user_id
+activate API
+
+' API Call
+API -> view: get(user_id)
+activate view
+view -> service: get(user_id)
+activate service
+service -> serializer: get(request)
+activate serializer
+serializer -> table: serializer(query_set)
+activate table
+table --> serializer: alerts_data
+deactivate table
+serializer --> service: alerts_data
+deactivate serializer
+service --> view: alerts_data
+deactivate service
+view --> API: response()
+deactivate view
+
+' Display Notifications
 API -> UI: Return notifications list
+' deactivate API
 UI -> User: Display notifications
 
-== View Route Details ==
-User -> UI: Tap a notification
-UI -> RouteUI: Navigate to Notification Route Page
-RouteUI -> API: GET /route-details
-API -> API: Retrieve route details
-API -> RouteUI: Return route details
-RouteUI -> User: Display route timeline
+
+' == View Route Details ==
+' User -> UI: Tap a notification
+' UI -> RouteUI: Navigate to Notification Route Page
+' RouteUI -> API: GET /route-details
+' API -> API: Retrieve route details
+' API -> RouteUI: Return route details
+' RouteUI -> User: Display route timeline
 
 == Toggle Notification Alert ==
-User -> Timeline: Tap Bell Icon for a Stop
+User -> UI: Tap Bell Icon for a Stop
+UI -> Timeline: toggleNotificationState(stop_id)
+activate Timeline
 Timeline -> Timeline: Toggle Notification State
-Timeline -> API: POST /update-alert (stop name)
-API -> API: Update selected stops
-API -> Timeline: Confirm stop selection
-Timeline -> User: Update Bell Icon Status
+Timeline -> API: POST /alert \nwith stop_id
+API -> view: post(stop_id)
+activate view
+view -> serializer: post(request)
+activate serializer
+serializer -> table: serializer(query_set)
+activate table
+table --> serializer: status
+deactivate table
+serializer --> view: status
+deactivate serializer
+view --> API: response()
+deactivate view
+API --> Timeline: status
+deactivate API
+Timeline --> UI: Update Bell Icon Status
+deactivate Timeline
+UI --> User: Show Alert Status
+deactivate UI
 
 @enduml
