@@ -5,12 +5,11 @@ hide footbox
 actor User
 participant "Upload Post Page" as UI
 participant "Django\nURL Dispatcher" as API
-participant "UploadPostView" as view_upload_post
-participant "PostSerializer" as serializer_post
-database "Post Database" as table_posts
-participant "Image Service" as image_service
+participant "UploadPost\nView" as view_upload_post
+participant "Post\nSerializer" as serializer_post
+database "post" as table_posts
+participant "Image\nService" as image_service
 
-== User Creates a Post ==
 activate User
 activate UI
 User -> UI: Open Upload Post Page
@@ -24,7 +23,6 @@ User -> UI: Upload an image (optional)
 
 UI -> UI: Validate inputs
 
-<<<<<<< HEAD
 alt Valid input
     User -> UI: Tap 'Post'
     UI -> API: POST posts/create/ (text, image)
@@ -78,33 +76,4 @@ end
 deactivate UI
 deactivate User
 
-=======
-== Submit Post to API ==
-User -> UI: Tap 'Post'
-UI -> API: POST /post with post data
-activate API
-
-' API Call
-API -> view_post: post(post_data)
-activate view_post
-view_post -> serializer: post(request)
-activate serializer
-serializer -> table_post: serializer(query_set)
-activate table_post
-
-table_post --> serializer: post_data
-deactivate table_post
-serializer --> view_post: post_data
-deactivate serializer
-view_post --> API: response()
-deactivate view_post
-API -> UI: Return success/failure response
-deactivate API
-
-== Display Upload Result ==
-UI -> User: Show success or error message
-deactivate UI
-deactivate User
-
->>>>>>> 2a86b349b649aec1f7633218ab14613e09221fc1
 @enduml

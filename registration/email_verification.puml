@@ -1,0 +1,35 @@
+@startuml email_verification
+
+hide footbox
+
+actor User
+participant "Email\nService" as email_service
+participant "Django\nURL Dispatcher" as API
+participant "Register\nView" as view_register
+database "users" as table_users
+
+User -> email_service: Click verification link
+activate User
+activate email_service
+email_service -> API: GET auth/account-confirm-email/<str:key>/
+activate API
+
+API -> view_register: verify_email(token)
+activate view_register
+
+view_register -> table_users: activate_user(token)
+activate table_users
+
+table_users --> view_register: user_activated
+deactivate table_users
+
+view_register --> API: 200 OK (email_verified)
+deactivate view_register
+
+API --> email_service: 200 OK (email_verified)
+deactivate API
+email_service --> User: Email verified
+deactivate email_service
+deactivate User
+
+@enduml

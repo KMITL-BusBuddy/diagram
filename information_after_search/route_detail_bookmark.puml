@@ -1,0 +1,41 @@
+@startuml route_detail_bookmark
+
+hide footbox
+
+actor User
+participant "RouteDetail\nScreen" as RouteDetailScreen
+participant "Django\nURL Dispatcher" as API
+participant "Favorite\nView" as view_favorite
+participant "Favorite\nSerilizer" as serializer_favorite
+database "favorite" as favorite
+
+opt User wants to bookmark route or bus stop
+    alt User wants to bookmark route
+        User -> RouteDetailScreen : click bookmark route
+        activate User
+        activate RouteDetailScreen
+        RouteDetailScreen -> API : POST /favorite/routes \nwith route_id
+        activate API
+    else User wants to bookmark bus stop
+        User -> RouteDetailScreen : click bookmark bus stop
+        RouteDetailScreen -> API : POST /favorite/stops \nwith bus_stop_id
+    end
+    API -> view_favorite: post(request)
+    activate view_favorite
+    view_favorite -> serializer_favorite: post(request)
+    activate serializer_favorite
+    serializer_favorite -> favorite: serializer(query_set)
+    activate favorite
+    favorite --> serializer_favorite: status
+    deactivate favorite
+    serializer_favorite --> view_favorite: status
+    deactivate serializer_favorite
+    view_favorite --> API: response()
+    deactivate view_favorite
+    API --> RouteDetailScreen: status
+    deactivate API
+    RouteDetailScreen --> User : display bookmark status
+    deactivate RouteDetailScreen
+end
+
+@enduml

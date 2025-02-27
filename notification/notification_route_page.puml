@@ -9,7 +9,7 @@ participant "Timeline\nComponent" as Timeline
 
 participant "Django\nURL Dispatcher" as API
 participant "Alert\nview" as view
-participant "Alert\nService" as service
+' participant "Alert\nService" as service
 participant "Alert\nSerilizer" as serializer
 database "alert" as table
 

@@ -42,7 +42,7 @@ opt Search Notifications
     UI --> User: Display filtered results
 end
 
-alt View Notification Details
+opt View Notification Details
     User -> UI: Tap on a notification
     UI -> UI: Navigate to Notification Route Page
 end

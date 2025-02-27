@@ -5,11 +5,10 @@ hide footbox
 actor User
 participant "Login Page" as UI
 participant "Django\nURL Dispatcher" as API
-participant "LoginView" as view_login
-participant "UserSerializer" as serializer_user
+participant "Login\nView" as view_login
+participant "User\nSerializer" as serializer_user
 database "users" as table_users
 
-== User Login ==
 activate User
 activate UI
 User -> UI: Enter username & password
@@ -18,7 +17,7 @@ User -> UI: Tap Login button
 UI -> UI: Validate input
 
 alt Valid input
-    UI -> API: POST auth/login/ (username, password)
+    UI -> API: POST auth/login/ \n(username, password)
     activate API
 
     API -> view_login: post(request)
@@ -27,7 +26,7 @@ alt Valid input
     view_login -> serializer_user: validate(data)
     activate serializer_user
 
-    serializer_user -> table_users: check_credentials(username, password, is_active=True)
+    serializer_user -> table_users: check_credentials \n(username, password, is_active)
     activate table_users
 
     table_users --> serializer_user: user_data
@@ -39,20 +38,18 @@ alt Valid input
     alt Authentication successful
         view_login -> view_login: create_session(user)
         view_login --> API: 200 OK (jwt token)
-        deactivate view_login
-        deactivate API
-
+        API --> UI: 200 OK
         UI -> UI: Navigate to HomePage
     else Authentication failed
         view_login --> API: 401 Unauthorized
         deactivate view_login
+        API --> UI: 401 Unauthorized
         deactivate API
-
-        UI -> User: Show error message
+        UI --> User: Show error message
+        deactivate UI
     end
 end
 
-deactivate UI
 deactivate User
 
 @enduml

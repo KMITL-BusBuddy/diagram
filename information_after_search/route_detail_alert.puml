@@ -1,0 +1,41 @@
+@startuml route_detail_bookmark
+
+hide footbox
+
+actor User
+participant "RouteDetail\nScreen" as RouteDetailScreen
+participant "Django\nURL Dispatcher" as API
+participant "Alert\nView" as view_alert
+participant "Alert\nSerilizer" as serializer_alert
+database "alert" as table
+
+opt User wants to set arrival alert
+    User -> RouteDetailScreen : click set arrival alert
+    activate User
+    activate RouteDetailScreen
+    alt set arrival alert for bus stop
+        RouteDetailScreen -> API : POST /alert/arrival \nwith bus_stop_id
+        activate API
+    else set arrival alert for route
+        RouteDetailScreen -> API : POST /alert/arrival \nwith route_id
+    end
+    API -> view_alert: post(request)
+    activate view_alert
+    view_alert -> serializer_alert: post(request)
+    activate serializer_alert
+    serializer_alert -> table: serializer(query_set)
+    activate table
+    table --> serializer_alert: status
+    deactivate table
+    serializer_alert --> view_alert: status
+    deactivate serializer_alert
+    view_alert --> API: response()
+    deactivate view_alert
+    API --> RouteDetailScreen: status
+    deactivate API
+    RouteDetailScreen --> User : display status
+    deactivate RouteDetailScreen
+    deactivate User
+end
+
+@enduml

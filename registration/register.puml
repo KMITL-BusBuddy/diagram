@@ -5,12 +5,11 @@ hide footbox
 actor User
 participant "Register Page" as UI
 participant "Django\nURL Dispatcher" as API
-participant "RegisterView" as view_register
-participant "UserSerializer" as serializer_user
-participant "Email Service" as email_service
+participant "Register\nView" as view_register
+participant "User\nSerializer" as serializer_user
+participant "Email\nService" as email_service
 database "users" as table_users
 
-== User Registration ==
 activate User
 activate UI
 User -> UI: Enter username, email & password
@@ -19,7 +18,7 @@ User -> UI: Tap Register button
 UI -> UI: Validate input
 
 alt Valid input
-    UI -> API: POST /register (username, email, password)
+    UI -> API: POST /register \n(username, email, password)
     activate API
 
     API -> view_register: post(request)
@@ -52,34 +51,15 @@ alt Valid input
 
         view_register --> API: 201 Created (verification_pending)
         deactivate view_register
+
+        API --> UI: 201 Created (verification_pending)
         deactivate API
 
-        UI -> User: Show "User registered successfully, confirmation email sent."
-
+        UI --> User: Show "User registered successfully, confirmation email sent."
+        deactivate UI
     end
 end
 
-deactivate UI
 deactivate User
-
-== Email Verification ==
-User -> email_service: Click verification link
-email_service -> API: GET auth/account-confirm-email/<str:key>/
-activate API
-
-API -> view_register: verify_email(token)
-activate view_register
-
-view_register -> table_users: activate_user(token)
-activate table_users
-
-table_users --> view_register: user_activated
-deactivate table_users
-
-view_register --> API: 200 OK (email_verified)
-deactivate view_register
-deactivate API
-
-User -> UI: Show "Your email has been verified."
 
 @enduml
