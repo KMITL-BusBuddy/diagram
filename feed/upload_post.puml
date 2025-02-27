@@ -1,0 +1,24 @@
+@startuml
+
+actor User
+participant "Upload Post Page" as UI
+participant "API Service" as API
+
+== User Creates a Post ==
+User -> UI: Open Upload Post Page
+UI -> User: Display post form
+
+== User Inputs Post Data ==
+User -> UI: Enter post text, select urgency, add tags
+User -> UI: Upload an image (optional)
+UI -> UI: Validate inputs
+
+== Submit Post to API ==
+User -> UI: Tap 'Post'
+UI -> API: POST /upload-post with post data
+API -> API: Store post data in database
+API -> UI: Return success/failure response
+
+== Display Upload Result ==
+UI -> User: Show success or error message
+@enduml
