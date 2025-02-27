@@ -1,4 +1,4 @@
-@startuml
+@startuml account_page
 
 actor User
 participant "Account Page" as UI

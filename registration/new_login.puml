@@ -1,4 +1,4 @@
-@startuml user_registration
+@startuml registration
 
 hide footbox
 
@@ -13,13 +13,13 @@ database "users" as table_users
 == User Registration ==
 activate User
 activate UI
-User -> UI: Enter username, email & password
+User -> UI: Enter username , email & password
 User -> UI: Tap Register button
 
 UI -> UI: Validate input
 
 alt Valid input
-    UI -> API: POST /register (username, email, password)
+    UI -> API: POST /register (username,email, password)
     activate API
 
     API -> view_register: post(request)
@@ -38,7 +38,7 @@ alt Valid input
     deactivate serializer_user
 
     alt Email available
-        view_register -> table_users: create_user(username, email, password, is_active=False)
+        view_register -> table_users: create_user(email, password, is_active=False)
         activate table_users
 
         table_users --> view_register: user_created
@@ -54,7 +54,10 @@ alt Valid input
         deactivate view_register
         deactivate API
 
-        UI -> User: Show "User registered successfully, confirmation email sent."
+        UI -> User: Show "Check your email to verify your account."
+
+        deactivate view_register
+        deactivate API
 
     end
 end
@@ -80,6 +83,51 @@ view_register --> API: 200 OK (email_verified)
 deactivate view_register
 deactivate API
 
-User -> UI: Show "Your email has been verified."
+
+== User Login ==
+activate User
+activate UI
+User -> UI: Enter username & password
+User -> UI: Tap Login button
+
+UI -> UI: Validate input
+
+alt Valid input
+    UI -> API: POST auth/login/ (username, password)
+    activate API
+
+    API -> view_register: post(request)
+    activate view_register
+
+    view_register -> serializer_user: validate(data)
+    activate serializer_user
+
+    serializer_user -> table_users: check_credentials(email, password, is_active=True)
+    activate table_users
+
+    table_users --> serializer_user: user_data
+    deactivate table_users
+
+    serializer_user --> view_register: valid_user / error
+    deactivate serializer_user
+
+    alt Authentication successful
+        view_register -> view_register: create_session(user)
+        view_register --> API: 200 OK (jwt token)
+        deactivate view_register
+        deactivate API
+
+        UI -> UI: Navigate to HomePage
+    else Authentication failed
+        view_register --> API: 401 Unauthorized
+        deactivate view_register
+        deactivate API
+
+        UI -> User: Show error message
+    end
+end
+
+deactivate UI
+deactivate User
 
 @enduml

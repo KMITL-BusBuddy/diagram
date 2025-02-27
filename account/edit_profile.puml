@@ -1,31 +1,79 @@
-@startuml
+@startuml profile
+
+hide footbox
 
 actor User
 participant "Edit Profile Page" as UI
-participant "Edit Profile API" as API
+participant "Django\nURL Dispatcher" as API
+participant "EditProfileView" as view_edit_profile
+participant "UserSerializer" as serializer_user
+database "user_profile" as table_users
 
-== Load User Profile Scenario ==
+== GET User Profile ==
 User -> UI: Open Edit Profile Page
-UI -> API: GET /user-profile
-API -> API: Retrieve user details
-API -> UI: Return user profile data
+UI -> API: GET /profile
+activate API
+
+API -> view_edit_profile: get(request)
+activate view_edit_profile
+
+view_edit_profile -> serializer_user: get_user_data
+activate serializer_user
+
+serializer_user -> table_users: retrieve_user_data
+activate table_users
+
+table_users --> serializer_user: user_data
+deactivate table_users
+
+serializer_user --> view_edit_profile: user_data
+deactivate serializer_user
+
+view_edit_profile --> API: 200 OK (user_details)
+deactivate view_edit_profile
+deactivate API
+
 UI -> User: Display user details
 
-== Update Profile Scenario ==
+== Update Profile ==
 User -> UI: Modify username or email
-User -> UI: Tap "บันทึก" button
-UI -> API: POST /update-profile (new details)
-API -> API: Validate and update profile
-    alt Update successful
-        API -> UI: 200 OK (success message)
-        UI -> User: Show success notification
-    else Update failed
-        API -> UI: 400 Bad Request / Error message
-        UI -> User: Show error notification
-    end
+User -> UI: Tap "Save" button
+UI -> API: POST /profile/edit (new details)
+activate API
+
+API -> view_edit_profile: post(request)
+activate view_edit_profile
+
+view_edit_profile -> serializer_user: validate_and_update(data)
+activate serializer_user
+
+serializer_user -> table_users: update_user_details
+activate table_users
+
+table_users --> serializer_user: updated_user_data
+deactivate table_users
+
+serializer_user --> view_edit_profile: update_success / error
+deactivate serializer_user
+
+view_edit_profile --> API: 200 OK / 400 Bad Request
+deactivate view_edit_profile
+deactivate API
+
+UI -> User: Show success or error notification
 
 == Logout Scenario ==
-User -> UI: Tap "ออกจากระบบ" button
-UI -> UI: Navigate to Account Page (logged out)
+User -> UI: Tap "Logout" button
+UI -> API: POST /auth/logout
+activate API
+
+API -> view_edit_profile: logout(request)
+activate view_edit_profile
+
+view_edit_profile --> API: 200 OK (logout success)
+deactivate view_edit_profile
+deactivate API
+
+UI -> User: Redirect to login page
 
 @enduml

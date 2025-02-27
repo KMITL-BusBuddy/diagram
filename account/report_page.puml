@@ -1,4 +1,4 @@
-@startuml
+@startuml report
 
 actor User
 participant "Report Page" as UI

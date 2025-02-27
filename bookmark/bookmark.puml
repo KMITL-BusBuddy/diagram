@@ -1,4 +1,4 @@
-@startuml
+@startuml bookmark
 
 actor User
 participant "Bookmark Page" as UI
@@ -32,5 +32,6 @@ UI -> API: DELETE /remove-bookmark
 API -> API: Remove bookmark entry
 API -> UI: Return success response
 UI -> User: Remove bookmark from list
+
 
 @enduml

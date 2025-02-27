@@ -5,21 +5,80 @@ hide footbox
 actor User
 participant "Upload Post Page" as UI
 participant "Django\nURL Dispatcher" as API
-participant "CreatePost\nview" as view_post
-participant "Post\nSerilizer" as serializer
-database "Post" as table_post
+participant "UploadPostView" as view_upload_post
+participant "PostSerializer" as serializer_post
+database "Post Database" as table_posts
+participant "Image Service" as image_service
 
 == User Creates a Post ==
+activate User
+activate UI
 User -> UI: Open Upload Post Page
 activate User
 activate UI
 UI -> User: Display post form
 
-== User Inputs Post Data ==
+
 User -> UI: Enter post text, select urgency, add tags
 User -> UI: Upload an image (optional)
+
 UI -> UI: Validate inputs
 
+<<<<<<< HEAD
+alt Valid input
+    User -> UI: Tap 'Post'
+    UI -> API: POST posts/create/ (text, image)
+    activate API
+
+    API -> view_upload_post: post(request)
+    activate view_upload_post
+
+    view_upload_post -> serializer_post: validate(data)
+    activate serializer_post
+
+    serializer_post -> table_posts: check_duplicate_post(text, user_id)
+    activate table_posts
+
+    table_posts --> serializer_post: post_available / error
+    deactivate table_posts
+
+    serializer_post --> view_upload_post: valid_data / error
+    deactivate serializer_post
+
+    alt 
+        alt Image included
+            view_upload_post -> image_service: upload_image(image)
+            activate image_service
+            image_service --> view_upload_post: image_url
+            deactivate image_service
+        end
+
+        view_upload_post -> table_posts: create_post(text, image_url)
+        activate table_posts
+
+        table_posts --> view_upload_post: post_created
+        deactivate table_posts
+
+        view_upload_post --> API: 201 Created (post_success)
+        deactivate view_upload_post
+        deactivate API
+
+        UI -> User: Show success message
+    else Invalid post data
+        view_upload_post --> API: 400 Bad Request (error)
+        deactivate view_upload_post
+        deactivate API
+
+        UI -> User: Show error message
+    end
+else Invalid input
+    UI -> User: Show validation errors
+end
+
+deactivate UI
+deactivate User
+
+=======
 == Submit Post to API ==
 User -> UI: Tap 'Post'
 UI -> API: POST /post with post data
@@ -47,4 +106,5 @@ UI -> User: Show success or error message
 deactivate UI
 deactivate User
 
+>>>>>>> 2a86b349b649aec1f7633218ab14613e09221fc1
 @enduml
