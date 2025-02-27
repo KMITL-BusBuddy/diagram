@@ -1,4 +1,4 @@
-@startuml
+@startuml notification_screen
 
 actor User
 participant "Notification Page" as UI

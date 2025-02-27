@@ -1,0 +1,68 @@
+@startuml feed_page
+
+hide footbox
+
+actor User
+participant "Feed Page" as UI
+participant "Feed API" as API
+participant "PostDetailView" as view_post_details
+participant "PostSerializer" as serializer_post
+database "posts" as table_posts
+database "likes" as table_likes
+database "comments" as table_comments
+
+== View Post Details ==
+activate User
+activate UI
+User -> UI: Tap a General News Post
+User -> UI: Tap a Station News Post
+
+UI -> API: GET /posts
+activate API
+
+API -> view_post_details: get(request)
+activate view_post_details
+
+view_post_details -> serializer_post: get_data
+activate serializer_post
+
+serializer_post -> table_posts: get_post
+activate table_posts
+
+table_posts --> serializer_post: post_data
+deactivate table_posts
+
+serializer_post --> view_post_details: post_data
+deactivate serializer_post
+
+view_post_details --> API: 200 OK (post_details)
+deactivate view_post_details
+deactivate API
+
+UI -> User: Display post details
+
+== Like and Comment ==
+User -> UI: Tap Like
+UI -> API: POST /like (post_id)
+activate API
+API -> table_likes: update_like_count(post_id)
+activate table_likes
+table_likes --> API: updated_like_count
+deactivate table_likes
+API -> UI: Return updated like count
+UI -> User: Update like count UI
+
+User -> UI: Add Comment
+UI -> API: POST /comment (post_id, comment)
+activate API
+API -> table_comments: store_comment(post_id, comment)
+activate table_comments
+table_comments --> API: updated_comments
+deactivate table_comments
+API -> UI: Return updated comments
+UI -> User: Update comment section
+
+deactivate UI
+deactivate User
+
+@enduml
