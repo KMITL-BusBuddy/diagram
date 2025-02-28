@@ -4,14 +4,13 @@ hide footbox
 
 actor User
 participant "Feed Page" as UI
-participant "Feed API" as API
-participant "PostDetailView" as view_post_details
-participant "PostSerializer" as serializer_post
-database "posts" as table_posts
-database "likes" as table_likes
-database "comments" as table_comments
+participant "Django\nURL Dispatcher" as API
+participant "Post\nView" as view
+participant "Post\nSerializer" as serializer
+database "post" as table_posts
+database "like" as table_likes
+database "comment" as table_comments
 
-== View Post Details ==
 activate User
 activate UI
 User -> UI: Tap a General News Post
@@ -20,49 +19,62 @@ User -> UI: Tap a Station News Post
 UI -> API: GET /posts
 activate API
 
-API -> view_post_details: get(request)
-activate view_post_details
+API -> view: get(request)
+activate view
 
-view_post_details -> serializer_post: get_data
-activate serializer_post
+view -> serializer: get_data
+activate serializer
 
-serializer_post -> table_posts: get_post
+serializer -> table_posts: get_post
 activate table_posts
 
-table_posts --> serializer_post: post_data
+table_posts --> serializer: post_data
 deactivate table_posts
 
-serializer_post --> view_post_details: post_data
-deactivate serializer_post
+serializer --> view: post_data
+deactivate serializer
 
-view_post_details --> API: 200 OK (post_details)
-deactivate view_post_details
+view --> API: response()
+deactivate view
+
+API --> UI: Return post details
 deactivate API
 
-UI -> User: Display post details
+UI --> User: Display post details
 
-== Like and Comment ==
-User -> UI: Tap Like
-UI -> API: POST /like (post_id)
-activate API
-API -> table_likes: update_like_count(post_id)
-activate table_likes
-table_likes --> API: updated_like_count
-deactivate table_likes
-API -> UI: Return updated like count
-UI -> User: Update like count UI
+opt Tab Like
+    User -> UI: Tap Like
+    UI -> API: POST /post/like (post_id)
+    activate API
 
-User -> UI: Add Comment
-UI -> API: POST /comment (post_id, comment)
-activate API
-API -> table_comments: store_comment(post_id, comment)
-activate table_comments
-table_comments --> API: updated_comments
-deactivate table_comments
-API -> UI: Return updated comments
-UI -> User: Update comment section
+    API -> view: post(post_id)
+    activate view
+    view -> serializer: post(request)
+    activate serializer
+    serializer -> table_likes: serializer(query_set)
+    activate table_likes
+    table_likes --> serializer: like_status
+    deactivate table_likes
+    serializer --> view: like_status
+    deactivate serializer
+    view --> API: response()
+    deactivate view
+    API -> UI: Return like status
+    UI -> User: Update like count UI
+else Add Comment 
+    U
+else Add Comment
+    User -> UI: Add Comment
+    UI -> API: POST post/comment (post_id, comment)
+    API -> table_comments: store_comment(post_id, comment)
+    activate table_comments
+    table_comments --> API: updated_comments
+    deactivate table_comments
+    API -> UI: Return updated comments
+    UI -> User: Update comment section
+    deactivate UI
+end
 
-deactivate UI
 deactivate User
 
 @enduml

@@ -6,10 +6,10 @@ actor User
 participant HomeScreen as UI
 participant Map
 participant "Django\nURL Dispatcher" as API
-participant "TransitStop\nview" as view
-participant "TransitStop\nService" as service
-participant "TransitStop\nSerilizer" as serializer
-database "line_shapes" as table
+participant "BusRealtime\nview" as view
+participant "BusRealtime\nService" as service
+participant "BusRealtime\nSerilizer" as serializer
+database "cache_bus_realtime" as table
 
 
 activate User
@@ -17,7 +17,7 @@ User -> UI: Tap on bus stop icon
 activate UI
 UI -> Map: notifyTapOnBusStop(busStop)
 activate Map
-Map -> API: GET /transit-stop/arrival \nwith stop_id
+Map -> API: GET /bus-realtime/arrival \nwith stop_id
 activate API
 
 ' API Call

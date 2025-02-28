@@ -1,37 +1,96 @@
 @startuml bookmark
 
+hide footbox
+
 actor User
 participant "Bookmark Page" as UI
-participant "Bookmark API" as API
+participant "Django\nURL Dispatcher" as API
+participant "Favorite\nView" as view
+participant "Favorite\nSerializer" as serializer
+database "favorite" as table
 
-== Load Bookmarks ==
+
 User -> UI: Open Bookmark Page
-UI -> API: GET /bookmarks
-API -> API: Retrieve bookmark data
+activate User
+activate UI
+UI -> API: GET /favorite \nwith user_id
+activate API
+
+' API Call
+API -> view: get(user_id)
+activate view
+view -> serializer: get(request)
+activate serializer
+serializer -> table: serializer(query_set)
+activate table
+
+table --> serializer: favorites_data
+deactivate table
+serializer --> view: favorites_data
+deactivate serializer
+view --> API: response()
+deactivate view
+
 API -> UI: Return bookmarks list
+deactivate API
 UI -> User: Display saved bookmarks
 
-== Change Bookmark Category ==
-User -> UI: Select a category (Routes, Bus Lines, Stations)
-UI -> User: Display relevant bookmarks
+opt Select Category
+    User -> UI: Select a category (Routes, Bus Lines, Stations)
+    UI --> User: Display relevant bookmarks
+end
 
-== Edit Bookmark ==
-User -> UI: Tap Edit button on a bookmark
-UI -> UI: Open edit dialog
-User -> UI: Modify bookmark name
-UI -> API: POST /update-bookmark (updated name)
-API -> API: Update bookmark entry
-API -> UI: Return success response
-UI -> User: Update bookmark display
+opt Update Bookmark
+    User -> UI: Tap Edit,  button on a bookmark
+    UI -> UI: Open edit dialog
+    User -> UI: Modify bookmark name
+    UI -> API: POST /favorite/update \nwith updated name
+    activate API
+    API -> view: update(request)
+    activate view
+    view -> serializer: update(request)
+    activate serializer
+    serializer -> table: serializer(query_set)
+    activate table
 
-== Delete Bookmark ==
-User -> UI: Tap Delete button on a bookmark
-UI -> UI: Show confirmation dialog
-User -> UI: Confirm deletion
-UI -> API: DELETE /remove-bookmark
-API -> API: Remove bookmark entry
-API -> UI: Return success response
-UI -> User: Remove bookmark from list
+    table --> serializer: status
+    deactivate table
+    serializer --> view: status
+    deactivate serializer
+    view --> API: response()
+    deactivate view
+    API -> UI: Return success response
+    deactivate API
+    UI -> User: Update bookmark name
 
+else Delete Bookmark
+    User -> UI: Tap Delete button on a bookmark
+    UI -> UI: Show confirmation dialog
+    User -> UI: Confirm deletion
+    UI -> API: DELETE /favorite/delete \nwith favorite_id
+    activate API
+
+    ' API Call
+    API -> view: delete(request)
+    activate view
+    view -> serializer: delete(request)
+    activate serializer
+    serializer -> table: serializer(query_set)
+    activate table
+
+    table --> serializer: status
+    deactivate table
+    serializer --> view: status
+    deactivate serializer
+    view --> API: response()
+    deactivate view
+
+    API -> UI: Return success response
+    deactivate API
+    UI -> User: Remove bookmark from list
+    deactivate UI
+end
+
+deactivate User
 
 @enduml

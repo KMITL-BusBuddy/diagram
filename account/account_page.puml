@@ -1,30 +1,43 @@
 @startuml account_page
 
+hide footbox
+
 actor User
 participant "Account Page" as UI
-participant "User API" as API
 
-== Load Account Information ==
+participant "Django\nURL Dispatcher" as API
+participant "User\nView" as view
+participant "User\nSerilizer" as serializer
+database "user" as user
+
+
 User -> UI: Open Account Page
-UI -> API: GET /user-profile
-API -> API: Retrieve user details
-API -> UI: Return user profile data
+activate User
+activate UI
+UI -> API: GET /profile \nwith user_id
+activate API
+
+' API Call
+API -> view: get(user_id)
+activate view
+view -> serializer: get(request)
+activate serializer
+serializer -> user: serializer(query_set)
+activate user
+
+user --> serializer: user_data
+deactivate user
+serializer --> view: user_data
+deactivate serializer
+view --> API: response()
+deactivate view
+
+API --> UI: user profile data
 UI -> User: Display user info and settings
 
-== Edit Profile Scenario ==
-User -> UI: Tap Edit Profile
-UI -> UI: Navigate to Edit Profile Page
-
-== Report Issue Scenario ==
-User -> UI: Tap "แจ้งปัญหาการใช้งาน"
-UI -> UI: Navigate to Report Page
-
-== User Guide Scenario ==
-User -> UI: Tap "วิธีใช้"
-UI -> UI: Navigate to User Guide Page
-
-== Terms and Conditions Scenario ==
-User -> UI: Tap "เงื่อนไขการใช้บริการ"
-UI -> UI: Navigate to Terms and Conditions Page
+opt Edit Profile
+    User -> UI: Tap Edit Profile
+    UI -> UI: Navigate to Edit Profile Page
+end
 
 @enduml

@@ -5,6 +5,13 @@ hide empty members
 
 skinparam linetype ortho
 
+entity user {
+    * **user_id: INT <<PK>>**
+    user_name: VARCHAR(100)
+    email: VARCHAR(100)
+    profile_image: VARCHAR(255)
+}
+
 entity post {
     * **post_id: INT <<PK>>**
     text_content: VARCHAR(500)
@@ -12,13 +19,6 @@ entity post {
     timestamp: DATETIME
     --
     * user_id: INT <<FK>>
-}
-
-entity user {
-    * **user_id: INT <<PK>>**
-    user_name: VARCHAR(100)
-    email: VARCHAR(100)
-    profile_image: VARCHAR(255)
 }
 
 entity comment {

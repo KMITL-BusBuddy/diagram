@@ -13,8 +13,6 @@ participant "Image\nService" as image_service
 activate User
 activate UI
 User -> UI: Open Upload Post Page
-activate User
-activate UI
 UI -> User: Display post form
 
 
@@ -58,22 +56,20 @@ alt Valid input
         deactivate table_posts
 
         view_upload_post --> API: 201 Created (post_success)
-        deactivate view_upload_post
-        deactivate API
 
         UI -> User: Show success message
     else Invalid post data
         view_upload_post --> API: 400 Bad Request (error)
         deactivate view_upload_post
+        API --> UI: error
         deactivate API
-
         UI -> User: Show error message
     end
 else Invalid input
     UI -> User: Show validation errors
+    deactivate UI
 end
 
-deactivate UI
 deactivate User
 
 @enduml
